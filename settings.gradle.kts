@@ -15,6 +15,8 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
+        /* Add the following line */
+        maven { url = uri("https://sdk-download.airbridge.io/maven") }
     }
 }
 

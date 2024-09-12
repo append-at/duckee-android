@@ -87,4 +87,6 @@ dependencies {
     implementation(project(":feature:detail"))
     implementation(project(":feature:recipe"))
     implementation(project(":feature:collection"))
+
+    implementation("io.airbridge:sdk-android:4.1.0")
 }

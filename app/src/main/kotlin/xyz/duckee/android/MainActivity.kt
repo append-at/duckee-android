@@ -15,9 +15,9 @@
  */
 package xyz.duckee.android
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,9 +25,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
-import com.google.firebase.dynamiclinks.PendingDynamicLinkData
-import com.google.firebase.dynamiclinks.ktx.dynamicLinks
-import com.google.firebase.ktx.Firebase
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,6 +40,7 @@ import xyz.duckee.android.core.ui.LocalNavigationPopStack
 import xyz.duckee.android.core.ui.LocalPaymentSheet
 import xyz.duckee.android.core.ui.PurchaseEventManager
 import javax.inject.Inject
+import co.ab180.airbridge.Airbridge
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -109,20 +107,47 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        // Handle deeplink when the app is opened from a deeplink
+        handleDeeplink(intent)
     }
 
     override fun onResume() {
         super.onResume()
 
-        Firebase.dynamicLinks
-            .getDynamicLink(intent)
-            .addOnSuccessListener(this) { pendingDynamicLinkData: PendingDynamicLinkData? ->
-                pendingDynamicLinkData?.link?.let { deepLink ->
-                    // Handle Deeplink with Jetpack NavigationComponent
-                    navigationController?.navigate(deepLink)
-                }
+        // Handle deferred deeplink
+        Airbridge.handleDeferredDeeplink { uri ->
+            uri?.let {
+                // Handle the deferred deeplink URI
+                // For example, navigate to a specific screen based on the URI
+                handleDeeplinkUri(it)
             }
-            .addOnFailureListener(this) { e ->
-                Timber.tag("[DuckeeMainActivity]").w(e, "getDynamicLink:onFailure") }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let { handleDeeplink(it) }
+    }
+
+    private fun handleDeeplink(intent: Intent) {
+        Airbridge.handleDeeplink(intent) { uri ->
+            // Handle the deeplink URI
+            // For example, navigate to a specific screen based on the URI
+            handleDeeplinkUri(uri)
+        }
+    }
+
+    private fun handleDeeplinkUri(uri: Uri) {
+        // Implement your deeplink handling logic here
+        // For example, navigate to specific screens based on the URI
+        when {
+            uri.path?.startsWith("/product/") == true -> {
+                val productId = uri.lastPathSegment
+                // Navigate to product detail screen
+                navigationController?.navigate("product/$productId")
+            }
+            // Add more cases as needed
+        }
     }
 }
