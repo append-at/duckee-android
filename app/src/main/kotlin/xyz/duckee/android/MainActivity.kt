@@ -43,6 +43,11 @@ import xyz.duckee.android.core.ui.LocalNavigationPopStack
 import xyz.duckee.android.core.ui.LocalPaymentSheet
 import xyz.duckee.android.core.ui.PurchaseEventManager
 import javax.inject.Inject
+import xyz.duckee.android.core.navigation.navigateToCollectionTab
+import xyz.duckee.android.core.navigation.navigateToDetailScreen
+import xyz.duckee.android.core.navigation.navigateToExploreTab
+import xyz.duckee.android.core.navigation.navigateToRecipeScreen
+import xyz.duckee.android.core.navigation.navigateToSignInScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -118,19 +123,46 @@ class MainActivity : ComponentActivity() {
             .getDynamicLink(intent)
             .addOnSuccessListener(this) { pendingDynamicLinkData: PendingDynamicLinkData? ->
                 pendingDynamicLinkData?.link?.let { deepLink ->
-                    // e.g. route /recipe/:id
-                    val recipePattern = "/recipe/(\\d+)".toRegex()
-                    val matchResult = recipePattern.find(deepLink.toString())
-                    matchResult?.let { result ->
-                        val recipeId = result.groupValues[1]
-                        val route = "recipe/$recipeId"
-                        navigationController?.navigate(route)
+                    val path = deepLink.path ?: return@let
+                    when {
+                        path.startsWith("/recipe/") -> {
+                            val recipePattern = "/recipe/(\\d+)".toRegex()
+                            val matchResult = recipePattern.find(path)
+                            matchResult?.let { result ->
+                                val recipeId = result.groupValues[1]
+                                navigationController?.navigateToRecipeScreen(recipeId)
+                            }
+                        }
+
+                        path.startsWith("/detail/") -> {
+                            val detailPattern = "/detail/([\\w-]+)".toRegex()
+                            val matchResult = detailPattern.find(path)
+                            matchResult?.let { result ->
+                                val detailId = result.groupValues[1]
+                                navigationController?.navigateToDetailScreen(detailId)
+                            }
+                        }
+
+                        path == "/explore" -> {
+                            navigationController?.navigateToExploreTab()
+                        }
+
+                        path == "/collection" -> {
+                            navigationController?.navigateToCollectionTab()
+                        }
+
+                        path == "/signin" -> {
+                            navigationController?.navigateToSignInScreen()
+                        }
+
+                        else -> {
+                            Timber.tag("[DuckeeMainActivity]").w("Unhandled deep link path: $path")
+                        }
                     }
-                    // Handle Deeplink with Jetpack NavigationComponent
-                    navigationController?.navigate(deepLink)
                 }
             }
             .addOnFailureListener(this) { e ->
-                Timber.tag("[DuckeeMainActivity]").w(e, "getDynamicLink:onFailure") }
+                Timber.tag("[DuckeeMainActivity]").w(e, "getDynamicLink:onFailure")
+            }
     }
 }
