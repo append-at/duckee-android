@@ -38,16 +38,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- firebase dynamic links -->
-            <intent-filter>
+            <!-- Airbridge 딥링크 처리를 위한 intent-filter -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="duckee.page.link"
+                    android:host="Duckee.abr.ge"
                     android:scheme="https" />
+            </intent-filter>
+
+            <!-- Scheme 딥링크 처리를 위한 intent-filter -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="duckee" />
             </intent-filter>
         </activity>
 

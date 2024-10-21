@@ -15,9 +15,9 @@
  */
 package xyz.duckee.android
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,9 +25,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavHostController
-import com.google.firebase.dynamiclinks.PendingDynamicLinkData
-import com.google.firebase.dynamiclinks.ktx.dynamicLinks
-import com.google.firebase.ktx.Firebase
 import com.stripe.android.paymentsheet.PaymentSheet
 import com.stripe.android.paymentsheet.PaymentSheetResult
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,6 +45,7 @@ import xyz.duckee.android.core.navigation.navigateToDetailScreen
 import xyz.duckee.android.core.navigation.navigateToExploreTab
 import xyz.duckee.android.core.navigation.navigateToRecipeScreen
 import xyz.duckee.android.core.navigation.navigateToSignInScreen
+import co.ab180.airbridge.Airbridge
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -114,55 +112,61 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        // Airbridge 딥링크 처리
+        Airbridge.handleDeeplink(intent) { deeplink ->
+            handleDeeplink(deeplink)
+        }
+
+        // 지연된 딥링크 처리
+        Airbridge.handleDeferredDeeplink { deeplink ->
+            deeplink?.let { handleDeeplink(it) }
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
 
-        Firebase.dynamicLinks
-            .getDynamicLink(intent)
-            .addOnSuccessListener(this) { pendingDynamicLinkData: PendingDynamicLinkData? ->
-                pendingDynamicLinkData?.link?.let { deepLink ->
-                    val path = deepLink.path ?: return@let
-                    when {
-                        path.startsWith("/recipe/") -> {
-                            val recipePattern = "/recipe/(\\d+)".toRegex()
-                            val matchResult = recipePattern.find(path)
-                            matchResult?.let { result ->
-                                val recipeId = result.groupValues[1]
-                                navigationController?.navigateToRecipeScreen(recipeId)
-                            }
-                        }
+        // Airbridge 딥링크 처리
+        intent?.let { newIntent ->
+            Airbridge.handleDeeplink(newIntent) { deeplink ->
+                handleDeeplink(deeplink)
+            }
+        }
+    }
 
-                        path.startsWith("/detail/") -> {
-                            val detailPattern = "/detail/([\\w-]+)".toRegex()
-                            val matchResult = detailPattern.find(path)
-                            matchResult?.let { result ->
-                                val detailId = result.groupValues[1]
-                                navigationController?.navigateToDetailScreen(detailId)
-                            }
-                        }
-
-                        path == "/explore" -> {
-                            navigationController?.navigateToExploreTab()
-                        }
-
-                        path == "/collection" -> {
-                            navigationController?.navigateToCollectionTab()
-                        }
-
-                        path == "/signin" -> {
-                            navigationController?.navigateToSignInScreen()
-                        }
-
-                        else -> {
-                            Timber.tag("[DuckeeMainActivity]").w("Unhandled deep link path: $path")
-                        }
-                    }
+    private fun handleDeeplink(deeplink: Uri) {
+        val path = deeplink.path ?: return
+        when {
+            path.startsWith("/recipe/") -> {
+                val recipePattern = "/recipe/(\\d+)".toRegex()
+                val matchResult = recipePattern.find(path)
+                matchResult?.let { result ->
+                    val recipeId = result.groupValues[1]
+                    navigationController?.navigateToRecipeScreen(recipeId)
                 }
             }
-            .addOnFailureListener(this) { e ->
-                Timber.tag("[DuckeeMainActivity]").w(e, "getDynamicLink:onFailure")
+            path.startsWith("/detail/") -> {
+                val detailPattern = "/detail/([\\w-]+)".toRegex()
+                val matchResult = detailPattern.find(path)
+                matchResult?.let { result ->
+                    val detailId = result.groupValues[1]
+                    navigationController?.navigateToDetailScreen(detailId)
+                }
             }
+            path == "/explore" -> {
+                navigationController?.navigateToExploreTab()
+            }
+            path == "/collection" -> {
+                navigationController?.navigateToCollectionTab()
+            }
+            path == "/signin" -> {
+                navigationController?.navigateToSignInScreen()
+            }
+            else -> {
+                Timber.tag("[DuckeeMainActivity]").w("Unhandled deep link path: $path")
+            }
+        }
     }
 }

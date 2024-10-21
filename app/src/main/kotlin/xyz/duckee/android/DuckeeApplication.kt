@@ -19,9 +19,23 @@ import android.app.Application
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import dagger.hilt.android.HiltAndroidApp
+import co.ab180.airbridge.Airbridge
+import co.ab180.airbridge.AirbridgeOption
+import co.ab180.airbridge.AirbridgeOptionBuilder
+import co.ab180.airbridge.AirbridgeLogLevel
 
 @HiltAndroidApp
 class DuckeeApplication : Application(), ImageLoaderFactory {
+
+    override fun onCreate() {
+        super.onCreate()
+
+        // Airbridge SDK 초기화
+        val option = AirbridgeOptionBuilder("Duckee", "1a2a43aa22644a0990e0e4bc732dfb77")
+            .setLogLevel(AirbridgeLogLevel.DEBUG) // 개발 중에는 DEBUG 레벨로 설정
+            .build()
+        Airbridge.initializeSDK(this, option)
+    }
 
     override fun newImageLoader(): ImageLoader =
         ImageLoader.Builder(this)
