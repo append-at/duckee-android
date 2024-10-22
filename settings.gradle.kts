@@ -6,6 +6,7 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+        maven { url = uri("https://sdk-download.airbridge.io/maven") }
     }
 }
 dependencyResolutionManagement {
@@ -15,6 +16,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven { url = uri("https://jitpack.io") }
+        maven { url = uri("https://sdk-download.airbridge.io/maven") }
     }
 }
 

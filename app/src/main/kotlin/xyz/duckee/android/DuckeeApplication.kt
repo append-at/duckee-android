@@ -19,9 +19,23 @@ import android.app.Application
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import dagger.hilt.android.HiltAndroidApp
+import co.ab180.airbridge.Airbridge
+import co.ab180.airbridge.AirbridgeOption
+import co.ab180.airbridge.AirbridgeOptionBuilder
 
 @HiltAndroidApp
 class DuckeeApplication : Application(), ImageLoaderFactory {
+
+    override fun onCreate() {
+        super.onCreate()
+        initializeAirbridge()
+    }
+
+    private fun initializeAirbridge() {
+        val option = AirbridgeOptionBuilder("duckee", "fc57a50c7b39453fb2582e4991e326a7")
+            .build()
+        Airbridge.initializeSDK(this, option)
+    }
 
     override fun newImageLoader(): ImageLoader =
         ImageLoader.Builder(this)
