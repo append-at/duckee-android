@@ -35,6 +35,9 @@ protobufPlugin = "0.9.1"
 # DataStore
 datastore = "1.0.0"
 
+# Airbridge
+airbridge = "4.1.0"
+
 [libraries]
 
 # Build tools / Languages
@@ -130,6 +133,9 @@ protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", ve
 
 # Stripe Payment
 stripe = "com.stripe:stripe-android:20.19.2"
+
+# Airbridge
+airbridge = { module = "io.airbridge:sdk-android", version.ref = "airbridge" }
 
 [bundles]
 

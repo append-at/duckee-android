@@ -60,6 +60,7 @@ class MainActivity : ComponentActivity() {
     lateinit var purchaseEventManager: PurchaseEventManager
 
     private var navigationController: NavHostController? = null
+    private lateinit var deeplinkHandler: DeeplinkHandler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,6 +101,8 @@ class MainActivity : ComponentActivity() {
 
             LaunchedEffect(navController) {
                 navigationController = navController
+                deeplinkHandler = DeeplinkHandler(navController)
+                deeplinkHandler.handleDeferredDeeplink()
             }
 
             DuckeeTheme {
@@ -118,51 +121,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-
-        Firebase.dynamicLinks
-            .getDynamicLink(intent)
-            .addOnSuccessListener(this) { pendingDynamicLinkData: PendingDynamicLinkData? ->
-                pendingDynamicLinkData?.link?.let { deepLink ->
-                    val path = deepLink.path ?: return@let
-                    when {
-                        path.startsWith("/recipe/") -> {
-                            val recipePattern = "/recipe/(\\d+)".toRegex()
-                            val matchResult = recipePattern.find(path)
-                            matchResult?.let { result ->
-                                val recipeId = result.groupValues[1]
-                                navigationController?.navigateToRecipeScreen(recipeId)
-                            }
-                        }
-
-                        path.startsWith("/detail/") -> {
-                            val detailPattern = "/detail/([\\w-]+)".toRegex()
-                            val matchResult = detailPattern.find(path)
-                            matchResult?.let { result ->
-                                val detailId = result.groupValues[1]
-                                navigationController?.navigateToDetailScreen(detailId)
-                            }
-                        }
-
-                        path == "/explore" -> {
-                            navigationController?.navigateToExploreTab()
-                        }
-
-                        path == "/collection" -> {
-                            navigationController?.navigateToCollectionTab()
-                        }
-
-                        path == "/signin" -> {
-                            navigationController?.navigateToSignInScreen()
-                        }
-
-                        else -> {
-                            Timber.tag("[DuckeeMainActivity]").w("Unhandled deep link path: $path")
-                        }
-                    }
-                }
-            }
-            .addOnFailureListener(this) { e ->
-                Timber.tag("[DuckeeMainActivity]").w(e, "getDynamicLink:onFailure")
-            }
+        deeplinkHandler.handleDeeplink(intent)
     }
 }
