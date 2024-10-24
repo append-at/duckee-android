@@ -73,6 +73,7 @@ dependencies {
     implementation(libs.androidx.startup)
     implementation(libs.timber)
     implementation(libs.stripe)
+    implementation(libs.airbridge)
 
     implementation(project(":core:designsystem"))
     implementation(project(":core:navigation"))
